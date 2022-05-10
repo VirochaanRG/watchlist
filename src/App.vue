@@ -28,7 +28,49 @@
 </template>
 
 <script>
+  import axios from 'axios';
+  export default {
+    data() {
+      return {
+        baseApiUrl: 'http://localhost:5000/api',
+        stock: {
+          name:''
+        },
+        Stocks: {},
+        StocksList: {
 
+        }
+      }
+    },
+    created (){
+      this.getStocks()
+    },
+    methods: {
+      getStocks() {
+        axios.get(this.baseApiUrl).then(res => {
+          this.Stocks = res.data;
+          let names = Array.prototype.map.call(this.Stocks, s=>s.name).toString();
+          axios.get(`https://min-api.cryptocompare.com/data/pricemultifull?fsyms=${names}&tsyms=USD,EUR&api_key=1857384eb534d30bc84db3e18bfa41915ce3955213e3f7a699c33a67c28101c1`).then(res => {
+            this.StocksList = res.data
+            console.log(this.StocksList)
+          }).catch(error => {
+            console.log(error)
+          })
+        })
+      },
+      handleSubmitForm() {
+        axios.post(this.baseApiUrl + '/add-stock', this.stock).then(() => {
+          console.log(this.stock)
+          this.stock = {
+            name:''
+          }
+          this.getStocks()
+        }).catch(error => {
+          console.log(error)
+        })
+      }
+    }
+  }
 </script>
 
 <style>
