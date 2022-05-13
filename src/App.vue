@@ -7,7 +7,7 @@
         <div class="form-group"> 
           <label for = "stocks">Stock Ticker:</label>
           <div class="form-group-inner">
-            <input type="text" class="stocks" placeholder = "AAPL" requires>
+            <input type="text" class="stocks" v-model = "stock.name" placeholder = "BTC" required>
             <button class = "add">Add</button>
             <p class = "info">Input stock Ticker</p>
           </div>
@@ -15,11 +15,11 @@
       </form> 
 
       <div class="stock-container">
-        <div class="stocksname">
-          <p class = "price">$1000</p>
+        <div class="stocksname" v-for = "(item, name) in StocksList.RAW" :key="item._id">
+          <p class = "price">${{formatPrice(item)}}</p>
           <div class="lower">
-              <p class = "stock-label">AAPL</p>
-              <button class = "delete-btn"><img src = "@/assets/delete.png" alt = "delete"></button>
+              <p class = "stock-label">{{name}}</p>
+              <button class = "delete-btn" @click.prevent="deleteStock(name)"><img src = "@/assets/delete.png" alt = "delete"></button>
           </div>
         </div>  
       </div>      
@@ -29,17 +29,16 @@
 
 <script>
   import axios from 'axios';
+  
   export default {
     data() {
       return {
-        baseApiUrl: 'http://localhost:5000/api',
+        baseApiUrl: 'http://localhost:4000/api',
         stock: {
           name:''
         },
-        Stocks: {},
-        StocksList: {
-
-        }
+        Stocks: [],
+        StocksList: {}
       }
     },
     created (){
@@ -49,10 +48,12 @@
       getStocks() {
         axios.get(this.baseApiUrl).then(res => {
           this.Stocks = res.data;
+          console.log(this.Stocks)
           let names = Array.prototype.map.call(this.Stocks, s=>s.name).toString();
-          axios.get(`https://min-api.cryptocompare.com/data/pricemultifull?fsyms=${names}&tsyms=USD,EUR&api_key=1857384eb534d30bc84db3e18bfa41915ce3955213e3f7a699c33a67c28101c1`).then(res => {
+          console.log(names)
+          axios.get(`https://min-api.cryptocompare.com/data/pricemultifull?fsyms=${names}&tsyms=USD&api_key=1857384eb534d30bc84db3e18bfa41915ce3955213e3f7a699c33a67c28101c1`).then(res => {
             this.StocksList = res.data
-            console.log(this.StocksList)
+            console.log(this.StocksList.RAW.BTC.USD.PRICE)
           }).catch(error => {
             console.log(error)
           })
@@ -64,6 +65,21 @@
           this.stock = {
             name:''
           }
+          this.getStocks()
+        }).catch(error => {
+          console.log(error)
+        })
+      },
+      formatPrice(name) {
+        console.log(name)
+        return name.USD.PRICE
+      },
+      deleteStock(name){
+        console.log(this.Stocks)
+        let foundObj = this.Stocks.find(x => x.name === name)
+        let indexOfArrayItem = this.Stocks.findIndex(i => i._id === foundObj._id)
+        axios.delete(`${this.baseApiUrl}/delete-stock/${foundObj._id}`).then (() => {
+          this.Stocks.splice(indexOfArrayItem, 1);
           this.getStocks()
         }).catch(error => {
           console.log(error)

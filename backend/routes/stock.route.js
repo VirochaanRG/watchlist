@@ -1,8 +1,8 @@
 const express = require('express');
-const { nextTick } = require('vue');
+//const { nextTick } = require('vue');
 const stockRoute = express.Router();
 
-let CryptoModel = require('../models/stocks');
+let StockModel = require('../models/stocks');
 
 stockRoute.route('/').get((req, res) => {
     StockModel.find((error,data) => {
